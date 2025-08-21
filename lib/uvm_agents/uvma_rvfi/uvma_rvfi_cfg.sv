@@ -87,7 +87,7 @@ class uvma_rvfi_cfg_c#(int ILEN=DEFAULT_ILEN,
 
    constraint defaults_cons {
       soft enabled                 == 1;
-      soft ap_write_en             == 0;
+      soft ap_write_en             == ($test$plusargs("WRITE_RVFI_AP"));
       soft is_active               == UVM_PASSIVE;
       soft cov_model_enabled       == 0;
       soft trn_log_enabled         == 1;
