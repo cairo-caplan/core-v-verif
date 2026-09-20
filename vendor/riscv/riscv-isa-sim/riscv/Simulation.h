@@ -73,6 +73,12 @@ private:
   uint64_t total_steps = 0;
   uint64_t max_steps;
   bool max_steps_enabled;
+
+  // End-of-test handshake state of CORE-V-VERIF tests: used
+  // to indicate the presence of a TEST_RESULT_PASS/FAIL
+  // to the test status port to halt the RVFI
+  bool test_done = false;
+  uint64_t test_exit_code = 0;
 };
 } // namespace openhw
 

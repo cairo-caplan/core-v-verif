@@ -65,9 +65,9 @@ void Simulation::default_params(openhw::Params &params) {
   if (!params.exist("/top/", "max_steps_enabled"))
     params.set_bool("/top/", "max_steps_enabled", false, "False",
                     "Maximum steps enable");
-  if (!params.exist("/top/", "max_steps_enabled"))
-    params.set_bool("/top/", "max_steps_enabled", 200000UL, "200000",
-                    "Maximum steps that the simulation can do ");
+  if (!params.exist("/top/", "max_steps"))
+    params.set_uint64_t("/top/", "max_steps", 200000UL, "200000",
+                        "Maximum steps that the simulation can do ");
 
 }
 
@@ -195,7 +195,25 @@ std::vector<st_rvfi> Simulation::step(size_t n,
       continue;
 
     vspike[i] = ((Processor *)procs[i])->step(1, vreference[i]);
-    vspike[i].halt = (sim_t::done() ? ((sim_t::exit_code() << 1) | 1) : 0);
+
+    // End-of-test handshake detection of CORE-V-VERIF tests:
+    // Detects a TEST_PASSED/TEST_FAILED signature to halt the RVFI
+    // and the execution of the test program
+    if (!test_done) {
+      uint64_t test_status_base =
+          (this->params["/top/test_status_base"]).a_uint64_t;
+      uint64_t wdata = vreference[i].mem_wdata;
+      if (test_status_base != 0 && vreference[i].mem_wmask != 0 &&
+          vreference[i].mem_addr == test_status_base &&
+          (wdata == 123456789ULL || wdata == 0x1ULL || wdata == 0ULL)) {
+        test_done = true;
+        test_exit_code = wdata;
+      }
+    }
+    vspike[i].halt =
+        (sim_t::done()
+             ? ((sim_t::exit_code() << 1) | 1)
+             : (test_done ? ((test_exit_code << 1) | 1) : 0));
 
     host = context_t::current();
     if (!sim_t::done()) {

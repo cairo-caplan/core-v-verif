@@ -96,8 +96,35 @@ import "DPI-C" function void spike_put_csr(input longint unsigned proc_id,
                 void'(spike_set_param_bool("/top/", "dram_enable", core_cfg.dram_valid));
                 void'(spike_set_param_uint64_t("/top/", "dram_base", core_cfg.dram_base));
                 void'(spike_set_param_uint64_t("/top/", "dram_size", core_cfg.dram_size));
+
+                // CV32E20 firmware is linked at physical address 0x0, so DRAM is
+                // configured to cover the ELF load region. The default bootrom (at
+                // 0x10000) would overlap that region and hijack bus routing, so it is
+                // disabled here; the reset PC is taken from /top/core/<id>/boot_addr.
+                void'(spike_set_param_bool("/top/", "bootrom", 0));
             end
             void'(spike_set_param_bool(base, "unified_traps", core_cfg.unified_traps));
+
+            // The core services OBI bus accesses to peripheral addresses
+            // (several slaves at 0x10000000, 0x15000000, 0x20000000, ...)
+            // while Spike's bus has no device covering those regions. Without
+            // this, the first store to e.g. the virtual printer at 0x20000000
+            // raises a store access fault in the reference model (trap=1) that
+            // the core never takes, desyncing the two RVFI streams. Allowing
+            // unmapped accesses makes Spike read zeroes / drop stores, like a
+            // bus that accepts the transfer.
+            void'(spike_set_param_bool(base, "allow_unmapped_mem_access", 1'h1));
+
+            // Tell the reference model where the virtual printer / test-status
+            // port lives (bsp/cv32e20_dv.h MM_TESTSTATUS_ADDR).  On each core
+            // commit the reference model snoops this address: a store of
+            // 123456789 (TEST_RESULT_PASS) or 1 (TEST_RESULT_FAIL) raises
+            // st_rvfi.halt so the RVFI scoreboard can drop its objection and
+            // the phase ends cleanly (mirrors the core-side $finish ~500 ns
+            // after the first VP write in the non-Spike flow).
+            // FORNOW: hardcoded, matches bsp/cv32e20_dv.h; st_core_cntrl_cfg
+            // has no test_status_addr field to source it from.
+            void'(spike_set_param_uint64_t("/top/", "test_status_base", 64'h2000_0000));
 
             // FORNOW FIXME TODO: Hardcoded bootrom base address
             boot_addr = 64'h10000;
