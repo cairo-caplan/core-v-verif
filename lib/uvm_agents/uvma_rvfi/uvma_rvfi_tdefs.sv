@@ -18,7 +18,9 @@
 `ifndef __UVMA_RVFI_TDEFS_SV__
 `define __UVMA_RVFI_TDEFS_SV__
 
-typedef enum bit[MODE_WL-1:0] {
+// uvma_rvfi_mode is 64-bit wide in order to be compatible 
+// with Spike (`uint64_t mode` at riscv/Types.h)
+typedef enum bit[MAX_XLEN-1:0] {
    UVMA_RVFI_U_MODE        = 0,
    UVMA_RVFI_S_MODE        = 1,
    UVMA_RVFI_RESERVED_MODE = 2,

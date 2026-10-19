@@ -150,10 +150,8 @@ extern "C" void spike_create(const char *filename) {
     uint64_t num_procs = (a_num_procs).a_uint64_t
                              ? (a_num_procs).a_uint64_t
                              : config->nprocs();
-    Param a_generic_config = params["/top/generic_core_config"];
-    bool generic_config = (a_generic_config).a_bool;
-
     mapParam coreParams = params.get_base("/top/cores/");
+    mapParam topParams = params.get_base("/top/");
 
     std::vector<uint64_t> hartids = params.get_hartids();
     std::sort(hartids.begin(), hartids.end());
@@ -167,12 +165,30 @@ extern "C" void spike_create(const char *filename) {
 
     config->hartids = hartids;
 
-    if (generic_config) {
-      for (size_t i = 0; i < num_procs; i++) {
-        string base = "/top/core/" + std::to_string(hartids[i]) + "/";
-        for (auto p : coreParams) {
+    // Mirror the shared "/top/cores/" parameter set into each per-core base
+    // "/top/core/<id>/".  This mirroring must be unconditional: the SV side
+    // (rvfi_initialize_spike) writes boot_addr/isa/priv via the YAML
+    // "core_configs" tree, which YamlParamSetter stores under "/top/cores/",
+    // while Simulation/Processor read them back from "/top/core/<id>/".  When
+    // the mirror was gated on generic_core_config (set false by
+    // spike_set_default_params for cve2 profiles), per-core lookups such as
+    // /top/core/0/boot_addr fell through to their defaults (0), so the model
+    // fetched from PC 0 instead of the ELF entry and diverged at INSN 0.
+    for (size_t i = 0; i < num_procs; i++) {
+      string base = "/top/core/" + std::to_string(hartids[i]) + "/";
+      for (auto p : coreParams) {
+        if (!params.exist(base, p.first))
           params.set(base, p.first, p.second);
-        }
+      }
+      // Same for the shared "/top/" base: the SV side (rvfi_initialize_spike)
+      // writes most knobs (dram_base/size, bootrom, num_procs, ...) under
+      // "/top/" via spike_set_param_* , while Simulation/Processor read them
+      // back from "/top/core/<id>/".  Without this fallback the per-core
+      // lookups (e.g. boot_addr) fell through to their defaults and the
+      // model fetched from PC 0, diverging from the DUT at INSN 0.
+      for (auto p : topParams) {
+        if (!params.exist(base, p.first))
+          params.set(base, p.first, p.second);
       }
     }
 
