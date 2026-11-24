@@ -1,6 +1,7 @@
 // Copyright 2020 OpenHW Group
 // Copyright 2020 Datum Technology Corporation
 // Copyright 2020 Silicon Labs, Inc.
+// Copyright (c) 2026 Eclipse Foundation
 //
 // Licensed under the Solderpad Hardware Licence, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,8 +19,9 @@
 `ifndef __UVMA_RVFI_TDEFS_SV__
 `define __UVMA_RVFI_TDEFS_SV__
 
-// uvma_rvfi_mode is 64-bit wide in order to be compatible 
-// with Spike (`uint64_t mode` at riscv/Types.h)
+// st_rvfi must match struct st_rvfi in riscv/Types.h of the tandem-patched
+// Spike: 34 64-bit scalars, then six 4096x64 arrays with no padding.  
+// MAX_XLEN is therefore 64 here, and uvma_rvfi_mode is 64-bit wide.
 typedef enum bit[MAX_XLEN-1:0] {
    UVMA_RVFI_U_MODE        = 0,
    UVMA_RVFI_S_MODE        = 1,
@@ -83,9 +85,10 @@ typedef struct packed {
 `define ST_NUM_WORDS ($size(st_rvfi)/MAX_XLEN)
 parameter ST_NUM_WORDS =  ($size(st_rvfi)/MAX_XLEN);
 
-    typedef bit [ST_NUM_WORDS-1:0] [MAX_XLEN-1:0] vector_rvfi;
-typedef union {
-    st_rvfi rvfi;
+typedef bit [ST_NUM_WORDS-1:0] [MAX_XLEN-1:0] vector_rvfi;
+
+typedef union packed {
+    st_rvfi     rvfi;
     vector_rvfi array;
 } union_rvfi;
 

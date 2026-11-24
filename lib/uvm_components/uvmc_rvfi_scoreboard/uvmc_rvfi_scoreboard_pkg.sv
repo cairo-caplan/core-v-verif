@@ -1,6 +1,7 @@
 //
 // Copyright 2023 OpenHW Group
 // Copyright 2023 Datum Technology Corporation
+// Copyright (c) 2026 Eclipse Foundation
 //
 // Licensed under the Solderpad Hardware License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -35,8 +36,7 @@ package uvmc_rvfi_scoreboard_pkg;
    // DPI imports
   `include "dpi_dasm_imports.svh"
 
-  `include "uvma_rvfi_constants.sv"
-  `include "uvma_rvfi_tdefs.sv"
+  import rvfi_spike_dpi_pkg::*;
   `include "uvmc_rvfi_scoreboard_utils.sv"
   `include "uvmc_rvfi_scoreboard.sv"
 

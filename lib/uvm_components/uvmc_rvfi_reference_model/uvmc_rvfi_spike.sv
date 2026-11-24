@@ -1,4 +1,5 @@
 // Copyright 2023 OpenHW Group
+// Copyright (c) 2026 Eclipse Foundation
 //
 // Licensed under the Solderpad Hardware Licence, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -36,21 +37,42 @@ class uvmc_rvfi_spike#(int ILEN=DEFAULT_ILEN,
 
    endfunction : new
 
+   rvfi_spike_profile_t spike_profile;
+
+   /**
+    * A core-specific subclass or refine_profile() overrides this when
+    * spike_profile needs values st_core_cntrl_cfg cannot carry.
+    */
+   virtual function rvfi_spike_profile_t make_profile();
+       return rvfi_cfg_to_profile(cfg.core_name, cfg.to_struct());
+   endfunction : make_profile
+
+   /**
+    * Merge per-core values that st_core_cntrl_cfg cannot express, such as CSR
+    * write masks that reproduce the WARL behaviour from the RTL, memory map of
+    * the verification bus, and injection knobs.
+    */
+   virtual function void refine_profile(ref rvfi_spike_profile_t p);
+   endfunction : refine_profile
+
+   virtual function void initialize_spike();
+       spike_profile = make_profile();
+       refine_profile(spike_profile);
+       rvfi_start_spike(spike_profile);
+   endfunction : initialize_spike
+
    /**
     * Build phase
     */
    function void build_phase(uvm_phase phase);
-       st_core_cntrl_cfg st;
 
        super.build_phase(phase);
 
-       st = cfg.to_struct();
-
        if ($test$plusargs("USE_ISS")) begin
-           rvfi_initialize_spike(cfg.core_name, st);
+           initialize_spike();
        end
        else begin
-           `uvm_info("UVMC_RVFI_SPIKE", "Skipping rvfi_initialize_spike()", UVM_NONE)
+           `uvm_info("UVMC_RVFI_SPIKE", "Skipping initialize_spike()", UVM_NONE)
        end
    endfunction : build_phase
 

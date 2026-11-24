@@ -1,6 +1,7 @@
 // Copyright 2020 OpenHW Group
 // Copyright 2020 Datum Technology Corporation
 // Copyright 2020 Silicon Labs, Inc.
+// Copyright (c) 2026 Eclipse Foundation
 //
 // Licensed under the Solderpad Hardware Licence, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,7 +24,7 @@
  * monitor,
  */
 interface uvma_rvfi_csr_if
-  import uvma_rvfi_pkg::*;
+  import rvfi_spike_dpi_pkg::*;
   #(int XLEN=DEFAULT_XLEN)
   (
     input                      clk,
@@ -65,7 +66,7 @@ interface uvma_rvfi_csr_if
 endinterface : uvma_rvfi_csr_if
 
 interface uvma_rvfi_unified_csr_if
-  import uvma_rvfi_pkg::*;
+  import rvfi_spike_dpi_pkg::*;
   #(  int MAX_CSR=4096,
       int XLEN=DEFAULT_XLEN)
   (

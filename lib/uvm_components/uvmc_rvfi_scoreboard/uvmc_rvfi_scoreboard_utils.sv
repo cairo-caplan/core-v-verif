@@ -1,4 +1,5 @@
 // Copyright 2023 OpenHW Group
+// Copyright (c) 2026 Eclipse Foundation
 //
 // Licensed under the Solderpad Hardware Licence, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,13 +16,6 @@
 `ifndef __UVMC_RVFI_UTILS_SV__
 `define __UVMC_RVFI_UTILS_SV__
 
-import "DPI-C" function int spike_create(string filename);
-
-import "DPI-C" function void spike_set_param_uint64_t(string base, string name, longint unsigned value);
-import "DPI-C" function void spike_set_param_str(string base, string name, string value);
-import "DPI-C" function void spike_set_param_bool(string base, string name, bit value);
-import "DPI-C" function void spike_set_default_params(string profile);
-import "DPI-C" function void spike_set_params_from_file(string paramFilePath);
 
     st_core_cntrl_cfg m_core_cfg;
 

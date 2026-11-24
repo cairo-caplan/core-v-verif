@@ -2,6 +2,7 @@
 // Copyright 2020 OpenHW Group
 // Copyright 2020 Datum Technology Corporation
 // Copyright 2020 Silicon Labs, Inc.
+// Copyright (c) 2026 Eclipse Foundation
 //
 // Licensed under the Solderpad Hardware Licence, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -42,8 +43,7 @@ package uvma_rvfi_pkg;
    `uvm_analysis_imp_decl(_rvfi_instr)
 
    // Constants / Structs / Enums
-   `include "uvma_rvfi_constants.sv"
-   `include "uvma_rvfi_tdefs.sv"
+   import rvfi_spike_dpi_pkg::*;
 
    // Objects
    `include "uvma_rvfi_cfg.sv"
